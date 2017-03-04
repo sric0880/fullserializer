@@ -19,7 +19,7 @@
 #   mcs_path=mcs ./compile.sh
 
 unity_path=${unity_root:-"/Applications/Unity/Unity.app/Contents"}
-mcs_path=${mcs_path:-"$unity_path/Frameworks/MonoBleedingEdge/bin/mcs"}
+mcs_path=${mcs_path:-"$unity_path/MonoBleedingEdge/bin/mcs"}
 
 dll_output_path=${dll_file:-"FullSerializer.dll"}
 doc_output_path=${doc_file:-"FullSerializer.xml"}
@@ -37,9 +37,10 @@ echo "Compiling DLLs (output_dll_file: $dll_output_path,"\
 
 # TODO: Remove warning suppressions (all of them are for missing XML docs)
 $mcs_path \
-  /lib:$unity_path/Frameworks/Managed \
+  /lib:$unity_path/Managed \
   /reference:UnityEngine.dll \
   /target:library /debug /sdk:2 \
+  /define:NO_UNITY \
   /nowarn:1570 \
   /nowarn:1572 \
   /nowarn:1573 \
