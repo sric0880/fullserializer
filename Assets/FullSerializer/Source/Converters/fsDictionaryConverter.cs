@@ -76,7 +76,6 @@ namespace FullSerializer.Internal {
             // key/value info
             IDictionaryEnumerator enumerator = instance.GetEnumerator();
 
-            bool allStringKeys = true;
             var serializedKeys = new List<fsData>(instance.Count);
             var serializedValues = new List<fsData>(instance.Count);
             while (enumerator.MoveNext()) {
@@ -86,34 +85,21 @@ namespace FullSerializer.Internal {
 
                 serializedKeys.Add(keyData);
                 serializedValues.Add(valueData);
-
-                allStringKeys &= keyData.IsString;
             }
 
-            if (allStringKeys) {
-                serialized = fsData.CreateDictionary();
-                var serializedDictionary = serialized.AsDictionary;
+            serialized = fsData.CreateList(serializedKeys.Count);
+			var serializedList = serialized.AsList;
 
-                for (int i = 0; i < serializedKeys.Count; ++i) {
-                    fsData key = serializedKeys[i];
-                    fsData value = serializedValues[i];
-                    serializedDictionary[key.AsString] = value;
-                }
-            }
-            else {
-                serialized = fsData.CreateList(serializedKeys.Count);
-                var serializedList = serialized.AsList;
+			for (int i = 0; i < serializedKeys.Count; ++i)
+			{
+				fsData key = serializedKeys[i];
+				fsData value = serializedValues[i];
 
-                for (int i = 0; i < serializedKeys.Count; ++i) {
-                    fsData key = serializedKeys[i];
-                    fsData value = serializedValues[i];
-
-                    var container = new Dictionary<string, fsData>();
-                    container["Key"] = key;
-                    container["Value"] = value;
-                    serializedList.Add(new fsData(container));
-                }
-            }
+				var container = new Dictionary<string, fsData>();
+				container["Key"] = key;
+				container["Value"] = value;
+				serializedList.Add(new fsData(container));
+			}
 
             return result;
         }
