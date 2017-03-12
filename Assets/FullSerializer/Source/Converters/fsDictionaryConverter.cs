@@ -44,7 +44,7 @@ namespace FullSerializer.Internal {
                     if ((result += Serializer.TryDeserialize(keyData, keyStorageType, ref keyInstance)).Failed) return result;
                     if ((result += Serializer.TryDeserialize(valueData, valueStorageType, ref valueInstance)).Failed) return result;
 
-                    AddItemToDictionary(instance, keyInstance, valueInstance);
+					if ((result += AddItemToDictionary(instance, keyInstance, valueInstance)).Failed) return result;
                 }
             }
             else {
@@ -103,44 +103,13 @@ namespace FullSerializer.Internal {
         }
 
         private fsResult AddItemToDictionary(IDictionary dictionary, object key, object value) {
-            // Because we're operating through the IDictionary interface by
-            // default (and not the generic one), we normally send items through
-            // IDictionary.Add(object, object). This works fine in the general
-            // case, except that the add method verifies that it's parameter
-            // types are proper types. However, mono is buggy and these type
-            // checks do not consider null a subtype of the parameter types, and
-            // exceptions get thrown. So, we have to special case adding null
-            // items via the generic functions (which do not do the null check),
-            // which is slow and messy.
-            //
-            // An example of a collection that fails deserialization without this
-            // method is `new SortedList<int, string> { { 0, null } }`.
-            // (SortedDictionary is fine because it properly handles null
-            // values).
-            if (key == null || value == null) {
-                // Life would be much easier if we had MakeGenericType available,
-                // but we don't. So we're going to find the correct generic
-                // KeyValuePair type via a bit of trickery. All dictionaries
-                // extend ICollection<KeyValuePair<TKey, TValue>>, so we just
-                // fetch the ICollection<> type with the proper generic
-                // arguments, and then we take the KeyValuePair<> generic
-                // argument, and whola! we have our proper generic type.
-
-                var collectionType = fsReflectionUtility.GetInterface(dictionary.GetType(), typeof(ICollection<>));
-                if (collectionType == null) {
-                    return fsResult.Warn(dictionary.GetType() + " does not extend ICollection");
-                }
-
-                var keyValuePairType = collectionType.GetGenericArguments()[0];
-                object keyValueInstance = Activator.CreateInstance(keyValuePairType, key, value);
-                MethodInfo add = collectionType.GetFlattenedMethod("Add");
-                add.Invoke(dictionary, new object[] { keyValueInstance });
-                return fsResult.Success;
-            }
-
-            // We use the inline set methods instead of dictionary.Add;
-            // dictionary.Add will throw an exception if the key already exists.
-            dictionary[key] = value;
+			if (key == null || value == null)
+			{
+				return fsResult.Fail("Dictionary key or value is null");
+			}
+			// throw an exception if the key already exists.
+			if (dictionary.Contains(key)) return fsResult.Fail("The key " + key.ToString() + " already exists");
+			dictionary.Add(key, value);
             return fsResult.Success;
         }
 
