@@ -30,11 +30,12 @@ namespace FullSerializer.Internal {
             foreach (object item in instance) {
                 fsData itemData;
 
-                // note: We don't fail the entire deserialization even if the
-                //       item failed
-                var itemResult = Serializer.TrySerialize(elementType, item, out itemData);
-                result.AddMessages(itemResult);
-                if (itemResult.Failed) continue;
+				// note: We don't fail the entire deserialization even if the
+				//       item failed
+				if ((result += Serializer.TrySerialize(elementType, item, out itemData)).Failed)
+				{
+					return result;
+				}
 
                 serializedList.Add(itemData);
             }
@@ -77,11 +78,12 @@ namespace FullSerializer.Internal {
                     itemInstance = getMethod.Invoke(instance, new object[] { i });
                 }
 
-                // note: We don't fail the entire deserialization even if the
-                //       item failed
-                var itemResult = Serializer.TryDeserialize(itemData, elementStorageType, ref itemInstance);
-                result.AddMessages(itemResult);
-                if (itemResult.Failed) continue;
+				// note: We don't fail the entire deserialization even if the
+				//       item failed
+				if ((result += Serializer.TryDeserialize(itemData, elementStorageType, ref itemInstance)).Failed)
+				{
+					return result;
+				}
 
                 if (setMethod != null && i < existingSize) {
                     setMethod.Invoke(instance, new object[] { i, itemInstance });

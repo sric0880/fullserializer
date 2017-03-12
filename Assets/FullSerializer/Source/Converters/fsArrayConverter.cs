@@ -32,9 +32,10 @@ namespace FullSerializer.Internal {
 
                 fsData serializedItem;
 
-                var itemResult = Serializer.TrySerialize(elementType, item, out serializedItem);
-                result.AddMessages(itemResult);
-                if (itemResult.Failed) continue;
+				if ((result += Serializer.TrySerialize(elementType, item, out serializedItem)).Failed)
+				{
+					return result;
+				}
 
                 serializedList.Add(serializedItem);
             }
@@ -61,9 +62,10 @@ namespace FullSerializer.Internal {
                 object deserialized = null;
                 if (i < existingCount) deserialized = list[i];
 
-                var itemResult = Serializer.TryDeserialize(serializedItem, elementType, ref deserialized);
-                result.AddMessages(itemResult);
-                if (itemResult.Failed) continue;
+				if ((result += Serializer.TryDeserialize(serializedItem, elementType, ref deserialized)).Failed)
+				{
+					return result;
+				}
 
                 if (i < existingCount) list[i] = deserialized;
                 else list.Add(deserialized);

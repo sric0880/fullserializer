@@ -30,12 +30,11 @@ namespace FullSerializer.Internal {
 
                 fsData serializedData;
 
-                var itemResult = Serializer.TrySerialize(property.StorageType, property.OverrideConverterType,
-                                                         property.Read(instance), out serializedData);
-                result.AddMessages(itemResult);
-                if (itemResult.Failed) {
-                    continue;
-                }
+				if ((result += Serializer.TrySerialize(property.StorageType, property.OverrideConverterType,
+				                                       property.Read(instance), out serializedData)).Failed)
+				{
+					return result;
+				}
 
                 serialized.AsDictionary[property.JsonName] = serializedData;
             }
@@ -75,10 +74,11 @@ namespace FullSerializer.Internal {
                         deserializedValue = property.Read(instance);
                     }
 
-                    var itemResult = Serializer.TryDeserialize(propertyData, property.StorageType,
-                                                               property.OverrideConverterType, ref deserializedValue);
-                    result.AddMessages(itemResult);
-                    if (itemResult.Failed) continue;
+					if ((result += Serializer.TryDeserialize(propertyData, property.StorageType,
+															 property.OverrideConverterType, ref deserializedValue)).Failed)
+					{
+						return result;
+					}
 
                     property.Write(instance, deserializedValue);
                 }
