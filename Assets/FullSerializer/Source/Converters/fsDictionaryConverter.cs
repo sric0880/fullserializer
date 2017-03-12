@@ -24,6 +24,7 @@ namespace FullSerializer.Internal {
 
             Type keyStorageType, valueStorageType;
             GetKeyValueTypes(instance.GetType(), out keyStorageType, out valueStorageType);
+			string idFieldName = IDAttribute.TypeHasIDAttr(valueStorageType);
 
             if (data.IsList) {
                 var list = data.AsList;
@@ -34,21 +35,12 @@ namespace FullSerializer.Internal {
                     if ((result += CheckType(item, fsDataType.Object)).Failed) return result;
                     if ((result += CheckKey(item, "Key", out keyData)).Failed) return result;
                     if ((result += CheckKey(item, "Value", out valueData)).Failed) return result;
+					if (idFieldName != null)
+					{
+						valueData.AsDictionary.Add(idFieldName, keyData);
+					}
 
                     object keyInstance = null, valueInstance = null;
-                    if ((result += Serializer.TryDeserialize(keyData, keyStorageType, ref keyInstance)).Failed) return result;
-                    if ((result += Serializer.TryDeserialize(valueData, valueStorageType, ref valueInstance)).Failed) return result;
-
-                    AddItemToDictionary(instance, keyInstance, valueInstance);
-                }
-            }
-            else if (data.IsDictionary) {
-                foreach (var entry in data.AsDictionary) {
-                    if (fsSerializer.IsReservedKeyword(entry.Key)) continue;
-
-                    fsData keyData = new fsData(entry.Key), valueData = entry.Value;
-                    object keyInstance = null, valueInstance = null;
-
                     if ((result += Serializer.TryDeserialize(keyData, keyStorageType, ref keyInstance)).Failed) return result;
                     if ((result += Serializer.TryDeserialize(valueData, valueStorageType, ref valueInstance)).Failed) return result;
 
@@ -71,6 +63,7 @@ namespace FullSerializer.Internal {
 
             Type keyStorageType, valueStorageType;
             GetKeyValueTypes(instance.GetType(), out keyStorageType, out valueStorageType);
+			string idFieldName = IDAttribute.TypeHasIDAttr(valueStorageType);
 
             // No other way to iterate dictionaries and still have access to the
             // key/value info
@@ -94,6 +87,11 @@ namespace FullSerializer.Internal {
 			{
 				fsData key = serializedKeys[i];
 				fsData value = serializedValues[i];
+
+				if (idFieldName != null)
+				{
+					value.AsDictionary.Remove(idFieldName);
+				}
 
 				var container = new Dictionary<string, fsData>();
 				container["Key"] = key;
