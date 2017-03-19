@@ -82,6 +82,13 @@ namespace FullSerializer.Internal {
 
                     property.Write(instance, deserializedValue);
                 }
+                else {
+                    object deserializedValue = CreateInstance(null, property.StorageType);
+                    if (deserializedValue != null)
+                    {
+                        property.Write(instance, deserializedValue);
+                    }
+                }
             }
 
             return result;

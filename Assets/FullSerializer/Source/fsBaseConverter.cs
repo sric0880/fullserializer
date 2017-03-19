@@ -36,7 +36,7 @@ namespace FullSerializer {
                     "is needed");
             }
 
-            return storageType;
+            return null;
         }
 
         /// <summary>
