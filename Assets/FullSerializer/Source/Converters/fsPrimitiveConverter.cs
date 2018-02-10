@@ -98,7 +98,7 @@ namespace FullSerializer.Internal {
             }
 
             if (UseDouble(storageType) || UseInt64(storageType)) {
-                if (storage.IsDouble && UseDouble(instance.GetType())) {
+                if (storage.IsDouble) {
                     instance = Convert.ChangeType(storage.AsDouble, storageType);
                 }
                 else if (storage.IsInt64) {
